@@ -23,32 +23,32 @@ class U8(WiiArchive):
 	def _dump(self):
 		header = self.U8Header()
 		rootnode = self.U8Node()
-		
+
 		# constants
 		header.tag = "U\xAA8-"
 		header.rootnode_offset = 0x20
 		header.zeroes = "\x00" * 16
 		rootnode.type = 0x0100
-		
+
 		nodes = []
 		strings = '\x00'
 		data = ''
-		
+
 		for item, value in self.files:
 			node = self.U8Node()
-			
+
 			recursion = item.count('/')
 			if(recursion < 0):
 				recursion = 0
 			name = item[item.rfind('/') + 1:]
-			
+
 			node.name_offset = len(strings)
 			strings += name + '\x00'
-		
+
 			if(value == None): # directory
 				node.type = 0x0100
 				node.data_offset = recursion
-				
+
 				node.size = len(nodes) + 1
 				for one, two in self.files:
 					if(one[:len(item)] == item): # find nodes in the folder
@@ -62,15 +62,15 @@ class U8(WiiArchive):
 				node.size = len(value)
 				#print "sz: " + str(len(value))
 			nodes.append(node)
-			
+
 		header.header_size = ((len(nodes) + 1) * len(rootnode)) + len(strings)
 		header.data_offset = align(header.header_size + header.rootnode_offset, 64)
 		rootnode.size = len(nodes) + 1
-		
+
 		for i in range(len(nodes)):
 			if(nodes[i].type == 0x0000):
 				nodes[i].data_offset += header.data_offset
-						
+
 		fd = ''
 		fd += header.pack()
 		fd += rootnode.pack()
@@ -79,7 +79,7 @@ class U8(WiiArchive):
 		fd += strings
 		fd += "\x00" * (header.data_offset - header.rootnode_offset - header.header_size)
 		fd += data
-		
+
 		return fd
 	def _dumpDir(self, dir):
 		if(not os.path.isdir(dir)):
@@ -113,7 +113,7 @@ class U8(WiiArchive):
 		self._tmpPath = self._tmpPath[:self._tmpPath.find('/') + 1]
 	def _load(self, data):
 		offset = 0
-		
+
 		for i in range(len(data)):
 			header = self.U8Header()
 			header.unpack(data[offset:offset + len(header)])
@@ -122,56 +122,56 @@ class U8(WiiArchive):
 			data = data[1:]
 		offset += len(header)
 		offset = header.rootnode_offset
-		
+
 		#print header.rootnode_offset
 		#print header.header_size
 		#print header.data_offset
-		
+
 		rootnode = self.U8Node()
 		rootnode.unpack(data[offset:offset + len(rootnode)])
 		offset += len(rootnode)
-		
+
 		nodes = []
 		for i in range(rootnode.size - 1):
 			node = self.U8Node()
 			node.unpack(data[offset:offset + len(node)])
 			offset += len(node)
 			nodes.append(node)
-		
+
 		strings = data[offset:offset + header.data_offset - len(header) - (len(rootnode) * rootnode.size)]
 		offset += len(strings)
-		
+
 		recursion = [rootnode.size]
 		recursiondir = []
 		counter = 0
 		for node in nodes:
 			counter += 1
 			name = strings[node.name_offset:].split('\0', 1)[0]
-			
+
 			if(node.type == 0x0100): # folder
 				recursion.append(node.size)
 				recursiondir.append(name)
 				assert len(recursion) == node.data_offset + 2 # haxx
-				self.files.append(('/'.join(recursiondir), None))
-				
+				self.files.append((os.path.join(*recursiondir), None))
+
 				#print "Dir: " + name
 			elif(node.type == 0): # file
-				self.files.append(('/'.join(recursiondir) + '/' + name, data[node.data_offset:node.data_offset + node.size]))
+				self.files.append((os.path.join(*(recursiondir + [name])), data[node.data_offset:node.data_offset + node.size]))
 				offset += node.size
-				
+
 				#print "File: " + name
 			else: # unknown type -- wtf?
 				pass
-			
+
 			#print "Data Offset: " + str(node.data_offset)
-			#print "Size: " + str(node.size)	
+			#print "Size: " + str(node.size)
 			#print "Name Offset: " + str(node.name_offset)
 			#print ""
-			
+
 			sz = recursion.pop()
 			if(sz != counter + 1):
 				recursion.append(sz)
-			else:
+			elif recursiondir:
 				recursiondir.pop()
 	def __str__(self):
 		ret = ''
@@ -203,7 +203,7 @@ class U8(WiiArchive):
 				self.files[i] = (self.files[i][0], val)
 				return
 		self.files.append((key, val))
-		
+
 
 
 class CCF:
@@ -215,7 +215,7 @@ class CCF:
 			self.rootOffset = Struct.uint32
 			self.filesCount = Struct.uint32
 			self.zeroes8 = Struct.string(8)
-			
+
 	class CCFFile(Struct):
 		__endian__ = Struct.LE
 		def __format__(self):
@@ -227,86 +227,86 @@ class CCF:
 	def __init__(self, fileName):
 		self.fileName = fileName
 		self.fd = open(fileName, 'r+b')
-		
+
 	def compress(self, folder):
 		fileList = []
-		
+
 		fileHdr = self.CCFHeader()
-		
+
 		files = os.listdir(folder)
-		
+
 		fileHdr.magic = "\x43\x43\x46\x00"
 		fileHdr.zeroes12 = '\x00' * 12
 		fileHdr.rootOffset = 0x20
 		fileHdr.zeroes8 = '\x00' * 8
-		
+
 		currentOffset = len(fileHdr)
 		packedFiles = 0
 		previousFileEndOffset = 0
-		
+
 		for file in files:
 			if os.path.isdir(folder + '/' + file) or file == '.DS_Store':
 				continue
 			else:
 				fileList.append(file)
-				
+
 		fileHdr.filesCount = len(fileList)
 		self.fd.write(fileHdr.pack())
 		self.fd.write('\x00' * (fileHdr.filesCount * len(self.CCFFile())))
-		
+
 		for fileNumber in range(len(fileList)):
-			
+
 			fileEntry = self.CCFFile()
-			
+
 			compressedBuffer = zlib.compress(open(folder + '/' + fileList[fileNumber]).read())
-			
+
 			fileEntry.fileName = fileList[fileNumber]
 			fileEntry.fileSize = len(compressedBuffer)
 			fileEntry.fileSizeDecompressed = os.stat(folder + '/' + fileList[fileNumber]).st_size
 			fileEntry.fileOffset = align(self.fd.tell(), 32) / 32
-			
+
 			print 'File {0} ({1}Kb) placed at offset 0x{2:X}'.format(fileEntry.fileName, fileEntry.fileSize / 1024, fileEntry.fileOffset * 32)
-	
+
 			self.fd.seek(len(fileHdr) + fileNumber * len(self.CCFFile()))
 			self.fd.write(fileEntry.pack())
 			self.fd.seek(fileEntry.fileOffset * 32)
 			self.fd.write(compressedBuffer)
-			
-		self.fd.close()		
+
+		self.fd.close()
 
 	def decompress(self):
 		fileHdr = self.CCFHeader()
 		hdrData = self.fd.read(len(fileHdr))
 		fileHdr.unpack(hdrData)
-		
+
 		print 'Found {0} file/s and root node at 0x{1:X}'.format(fileHdr.filesCount, fileHdr.rootOffset)
-		
+
 		if fileHdr.magic != "\x43\x43\x46\x00":
 			raise ValueError("Wrong magic, 0x{0}".format(fileHdr.magic))
-			
+
 		try:
 			os.mkdir(os.path.dirname(self.fileName) + '/' + self.fd.name.replace(".", "_") + "_out")
 		except:
 			pass
-			
+
 		os.chdir(os.path.dirname(self.fileName) + '/' + self.fd.name.replace(".", "_") + "_out")
-		
+
 		currentOffset = len(fileHdr)
-		
+
 		for x in range(fileHdr.filesCount):
 			self.fd.seek(currentOffset)
-			
+
 			fileEntry = self.CCFFile()
 			fileData = self.fd.read(len(fileEntry))
 			fileEntry.unpack(fileData)
-			
+
 			fileEntry.fileOffset = fileEntry.fileOffset * 32
-						
+
 			print 'File {0} at offset 0x{1:X}'.format(fileEntry.fileName, fileEntry.fileOffset)
 			print 'File size {0}Kb ({1}Kb decompressed)'.format(fileEntry.fileSize / 1024, fileEntry.fileSizeDecompressed / 1024)
-			
+
 			output = open(fileEntry.fileName.rstrip('\0'), 'w+b')
-			
+
 			self.fd.seek(fileEntry.fileOffset)
 			if fileEntry.fileSize == fileEntry.fileSizeDecompressed:
 				print 'The file is stored uncompressed'
@@ -316,5 +316,5 @@ class CCF:
 				decompressedBuffer = zlib.decompress(self.fd.read(fileEntry.fileSize))
 				output.write(decompressedBuffer)
 			output.close()
-			
+
 			currentOffset += len(fileEntry)
