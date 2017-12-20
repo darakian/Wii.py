@@ -3,10 +3,10 @@ from title import *
 from Struct import Struct
 import os
 
-def fakesignPartition(self, iso, index)
+def fakesignPartition(self, iso, index):
 	iso = WOD(iso)
 	iso.openPartition(index)
-	fstBuf = iso.getFst()	"
+	fstBuf = iso.getFst()
 	fn = open(os.getcwd() + "/" + iso.discHdr.discId + iso.discHdr.gameCode + iso.discHdr.region + "/" + "PART" + index + "/" + 'appldr.bin', 'w+b')
 	fn.write(iso.getPartitionApploader()) #saved to cwd/GAMEID/PARTITION/file
 	fn.close()
