@@ -14,10 +14,10 @@ from headers import *
 from bns import *
 
 if (__name__ == "__main__"):
-	Crypto()
-	TMD()
-	Ticket()
-	
-	#insert non-dependant check code here
-	
-	print("\nAll Wii.py components loaded sucessfully!\n")
+    Crypto()
+    TMD()
+    Ticket()
+
+    #insert non-dependant check code here
+
+    print("\nAll Wii.py components loaded sucessfully!\n")
