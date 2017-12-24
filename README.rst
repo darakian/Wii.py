@@ -37,6 +37,15 @@ Features
     * setting.txt
     * Savegames
 
+Dependencies
+------------
+
+* PyCrypto
+* PIL (Python Imaging Library)
+* wxPython (optional) if you want to use the toScreen() method of the TPL object
+
+PyCrypto and PIL (Pillow fork) are part of the PyPI dependencies.  wxPython is not required if you're not doing GUI stuff.
+
 Usage
 -----
 
