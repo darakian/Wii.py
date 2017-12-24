@@ -3,6 +3,8 @@ Wii.py
 
 Wii.py from #Wii.py on EFNet is a GPL licensed Wii library written in and for Python. It provides editors and classes for many file types and files present on the Wii, especially files in banners. It was created as a replacement for the unreleased and never to be released pywii, written by marcan, but has since expanded in some areas that pywii did not cover and not completed others (such as Wii Optical Disc editing) that pywii has support for.
 
+Derived from: http://wiibrew.org/wiki/Wii.py
+
 Installation
 ------------
 
