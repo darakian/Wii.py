@@ -1,4 +1,6 @@
-import struct, sys
+import struct
+import sys
+
 
 class StructType(tuple):
     def __getitem__(self, value):

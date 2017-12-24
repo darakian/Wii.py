@@ -1,8 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from common import *
+
 import Wii
+from .common import *
+
 
 class SoundFile:
     def __init__(self, signal, filename, chancnt=2, samplerate=32000):
@@ -395,9 +398,9 @@ class BNS(object):
                     break
                 nibble = clamp(residual, -8, 7)
                 if i&1:
-                    data[i/2+1] = data[i/2+1] | (nibble & 0xf)
+                    data[i//2+1] = data[i//2+1] | (nibble & 0xf)
                 else:
-                    data[i/2+1] = nibble << 4
+                    data[i//2+1] = nibble << 4
                 predictor = predictor + (nibble << exp)
                 self.tlsamps[0] = self.tlsamps[1]
                 self.tlsamps[1] = clamp(predictor, -32768, 32767)
@@ -441,12 +444,13 @@ class BNS(object):
                 buffer = buffer + '\x00'
                 buffer = buffer + '\x00'
 
+        num_samps = 0
         if self.info.chan_cnt == 2:
-            num_samps = len(buffer) / 4
+            num_samps = len(buffer) // 4
         elif self.info.chan_cnt == 1:
-            num_samps = len(buffer) / 2
+            num_samps = len(buffer) // 2
 
-        blocks = (num_samps + 13) / 14
+        blocks = (num_samps + 13) // 14
         snddatal = []
         snddatar = []
         co = offset
@@ -535,6 +539,7 @@ class BNS(object):
         return outbuf
     def decode(self, buffer, offset):
         decoded_buffer = []
+        multi = coeff0 = coeff1 = 0
         if self.info.chan_cnt == 2:
             multi = 16
             coeff0 = self.info.coefficients1
@@ -543,7 +548,7 @@ class BNS(object):
             multi = 8
             coeff0 = self.info.coefficients1
             coeff1 = self.info.coefficients1
-        blocks = self.data.size / multi
+        blocks = self.data.size // multi
         data1_offset = offset
         data2_offset = offset + blocks * 8
         decoded_buffer_l = [0 for i in range(blocks * 14)]
@@ -667,6 +672,8 @@ if __name__ == "__main__":
         psyco.full()
     except ImportError:
         print("no psycho import")
+        sys.exit(1)
+
     if len(sys.argv) == 1:
         print("Usage: python bns.py -d <sound.bin> <output.wav>")
         print("                   == OR ==                  ")
@@ -676,5 +683,6 @@ if __name__ == "__main__":
         print("                   == OR ==                  ")
         print("       python bns.py -s <sound.bin> ")
         sys.exit(1)
+
     main()
 

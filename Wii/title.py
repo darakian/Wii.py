@@ -1,4 +1,6 @@
-from common import *
+from .Struct import *
+from .common import *
+
 
 class TicketView:
     """Creates a ticket view from the Ticket object ``tik''."""

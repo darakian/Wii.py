@@ -1,4 +1,8 @@
-from common import *
+from PIL import Image
+
+from .Struct import *
+from .common import *
+
 
 def flatten(myTuple):
     if (len(myTuple) == 4):
@@ -447,6 +451,7 @@ class TPL:
                 palhead.unpack(data[offs:offs + len(palhead)])
 
                 tpldata = struct.unpack(">" + str(palhead.nitems) + "H", data[palhead.offset:palhead.offset + (palhead.nitems * 2)])
+                palette_data = b''
                 if(palhead.format == 0):
                     palette_data = self.IA8((palhead.nitems, 1), tpldata)[0]
                 elif(palhead.format == 1):
@@ -552,7 +557,7 @@ class TPL:
                                 g = (texel) & 0xff
                                 b = (texel2) & 0xff
                                 out[m + (l * x)] |= ((g << 8) | (b << 16))
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def RGB5A3(self, xxx_todo_changeme9, jar):
         (w, h) = xxx_todo_changeme9
         out = [0 for i in range(w * h)]
@@ -580,7 +585,7 @@ class TPL:
 
                         rgba = (r << 16) | (g << 8) | (b << 0) | (a << 24)
                         out[(y1 * w) + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def RGB565(self, xxx_todo_changeme10, jar):
         (w, h) = xxx_todo_changeme10
         out = [0 for i in range(w * h)]
@@ -602,7 +607,7 @@ class TPL:
 
                         rgba = (r << 16) | (g << 8) | (b << 0) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def I4(self, xxx_todo_changeme11, jar):
         (w, h) = xxx_todo_changeme11
         out = [0 for i in range(w * h)]
@@ -637,7 +642,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1 + 1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def IA4(self, xxx_todo_changeme12, jar):
         (w, h) = xxx_todo_changeme12
         out = [0 for i in range(w * h)]
@@ -659,7 +664,7 @@ class TPL:
 
                         rgba = ( r<< 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def I8(self, xxx_todo_changeme13, jar):
         (w, h) = xxx_todo_changeme13
         out = [0 for i in range(w * h)]
@@ -681,7 +686,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def IA8(self, xxx_todo_changeme14, jar):
         (w, h) = xxx_todo_changeme14
         out = [0 for i in range(w * h)]
@@ -703,7 +708,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def CI4(self, xxx_todo_changeme15, jar, pal):
         (w, h) = xxx_todo_changeme15
         out = [0 for i in range(w * h)]
@@ -736,7 +741,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1 + 1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def CI8(self, xxx_todo_changeme16, jar, pal):
         (w, h) = xxx_todo_changeme16
         out = [0 for i in range(w * h)]
@@ -757,7 +762,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def CMP(self, xxx_todo_changeme17, data):
         (w, h) = xxx_todo_changeme17
         temp = [0 for i in range(w * h)]
@@ -797,8 +802,8 @@ class TPL:
 
                 temp[outp] = (pix[0] <<0) | (pix[1] << 8) | (pix[2] << 16) | (255 << 24)
                 outp += 1
-        return ''.join(Struct.uint32(p) for p in temp)
-    def CI14X2(self, xxx_todo_changeme18, jar):
+        return b''.join(Struct.uint32(p) for p in temp)
+    def CI14X2(self, xxx_todo_changeme18, jar, pal):
         (w, h) = xxx_todo_changeme18
         out = [0 for i in range(w * h)]
         i = 0
@@ -818,7 +823,7 @@ class TPL:
 
                         rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24)
                         out[y1 * w + x1] = rgba
-        return ''.join(Struct.uint32(p) for p in out)
+        return b''.join(Struct.uint32(p) for p in out)
     def getFormat(self):
         if(self.file):
             data = open(self.file, "rb").read()
@@ -870,7 +875,6 @@ class TPL:
             elif(tex.format == 14):
                 return "CMP"
             else:
-                return "CRAP"
                 raise TypeError("Unknown TPL Format: %d" % tex.format)
 
 

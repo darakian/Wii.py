@@ -1,7 +1,6 @@
-import struct
+from .Struct import *
+from .common import *
 
-from common import *
-from title import *
 
 class CONF:
     """This class deals with setting.txt which holds some important information like region and serial number """
@@ -62,7 +61,7 @@ class CONF:
 
         self.fp.seek(0)
         self.fp.write(self.XORConf(self.conf))
-        self.fp.write('\x00' * (0x100 - len(self.conf)))
+        self.fp.write(b'\x00' * (0x100 - len(self.conf)))
 
         self.lastKeyOffset = self.conf.rfind('\r\n') + 2
 
@@ -112,7 +111,7 @@ class CONF:
 
             self.fp.seek(0)
             self.fp.write(self.XORConf(self.conf))
-            self.fp.write('\x00' * (0x100 - len(self.conf)))
+            self.fp.write(b'\x00' * (0x100 - len(self.conf)))
 
             self.lastKeyOffset = self.conf.rfind('\r\n') + 2
         except KeyError:
@@ -138,7 +137,7 @@ class CONF:
 
             self.fp.seek(0)
             self.fp.write(self.XORConf(self.conf))
-            self.fp.write('\x00' * (0x100 - len(self.conf)))
+            self.fp.write(b'\x00' * (0x100 - len(self.conf)))
 
             self.lastKeyOffset = self.conf.rfind('\r\n') + 2
         except KeyError:
@@ -225,12 +224,12 @@ class netConfig:
         self.f = conf
         if(not os.path.isfile(self.f)):
             fp = open(self.f, "wb")
-            fp.write("\x00\x00\x00\x00\x01\x07\x00\x00")
-            fp.write("\x00" * 0x91C * 3)
+            fp.write(b"\x00\x00\x00\x00\x01\x07\x00\x00")
+            fp.write(b"\x00" * 0x91C * 3)
             fp.close()
         fp = open(self.f, "rb")
         head = fp.read(8)
-        if(head != "\x00\x00\x00\x00\x01\x07\x00\x00"):
+        if(head != b"\x00\x00\x00\x00\x01\x07\x00\x00"):
             print("Config file is invalid!\n")
 
     def getNotBlank(self, config):
@@ -253,8 +252,6 @@ class netConfig:
             return 0
         else:
             return 1
-        fp.close()
-        return sel
 
     def getWireType(self, config):
         if(not self.getNotBlank(config)):
@@ -266,7 +263,6 @@ class netConfig:
             return 0
         else:
             return 1
-        fp.close()
 
     def getSSID(self, config):
         if(not self.getNotBlank(config)):
@@ -391,15 +387,15 @@ class netConfig:
         fp = open(self.f, "rb+")
         fp.seek(8 + (0x91C * config) + 2025)
         if(crypt == "OPEN"):
-            fp.write("\x00")
+            fp.write(b"\x00")
         elif(crypt == "WEP"):
-            fp.write("\x01")
+            fp.write(b"\x01")
         elif(crypt == "WPA (TKIP)"):
-            fp.write("\x04")
+            fp.write(b"\x04")
         elif(crypt == "WPA2"):
-            fp.write("\x05")
+            fp.write(b"\x05")
         elif(crypt == "WPA (AES)"):
-            fp.write("\x06")
+            fp.write(b"\x06")
         else:
             print("Invalid crypto type. Valid types are: ``OPEN'', ``WEP'', ``WPA (TKIP)'', ``WPA2'', or ``WPA (AES)''\n")
             fp.close()
@@ -453,7 +449,7 @@ class ContentMap:
         """When passed a sha1 hash (string of length 20), this will return the filename of the shared content (/shared1/%08x.app, no NAND prefix) specified by the hash in content.map. Note that if the content is not found, it will return False - not an empty string."""
         cmfp = open(self.f, "rb")
         cmdict = {}
-        num = len(cmfp.read()) / 28
+        num = len(cmfp.read()) // 28
         cmfp.seek(0)
         for z in range(num):
             name = cmfp.read(8)
@@ -469,7 +465,7 @@ class ContentMap:
         Returns the content id."""
         cmfp = open(self.f, "rb")
         cmdict = {}
-        num = len(cmfp.read()) / 28
+        num = len(cmfp.read()) // 28
         cmfp.seek(0)
         for z in range(num):
             name = cmfp.read(8)
@@ -490,7 +486,7 @@ class ContentMap:
         cmfp = open(self.f, "rb")
         cmdict = {}
         cnt = 0
-        num = len(cmfp.read()) / 28
+        num = len(cmfp.read()) // 28
         cmfp.seek(0)
         for z in range(num):
             name = cmfp.read(8)
@@ -510,7 +506,7 @@ class ContentMap:
         cmfp = open(self.f, "rb")
         cmdict = {}
         cnt = 0
-        num = len(cmfp.read()) / 28
+        num = len(cmfp.read()) // 28
         cmfp.seek(0)
         for z in range(num):
             name = cmfp.read(8)
@@ -522,7 +518,7 @@ class ContentMap:
 
     def contentHashes(self, count):
         cmfp = open(self.f, "rb")
-        num = len(cmfp.read()) / 28
+        num = len(cmfp.read()) // 28
         if(num > count):
             num = count
         cmfp.seek(0)
@@ -565,7 +561,7 @@ class uidsys:
     def getUIDForTitle(self, title):
         uidfp = open(self.f, "rb")
         uiddat = uidfp.read()
-        cnt = len(uiddat) / 12
+        cnt = len(uiddat) // 12
         uidfp.seek(0)
         uidstr = self.UIDSYSStruct()
         uidict = {}
@@ -582,7 +578,7 @@ class uidsys:
     def getTitle(self, uid):
         uidfp = open(self.f, "rb")
         uiddat = uidfp.read()
-        cnt = len(uiddat) / 12
+        cnt = len(uiddat) // 12
         uidfp.seek(0)
         uidstr = self.UIDSYSStruct()
         uidict = {}
@@ -599,11 +595,11 @@ class uidsys:
     def addTitle(self, title):
         uidfp = open(self.f, "rb")
         uiddat = uidfp.read()
-        cnt = len(uiddat) / 12
+        cnt = len(uiddat) // 12
         uidfp.seek(0)
         uidstr = self.UIDSYSStruct()
         uidict = {}
-        enduid = "\x10\x01"
+        enduid = b"\x10\x01"
         for i in range(cnt):
             uidstr.titleid = uidfp.read(8)
             uidstr.padding = uidfp.read(2)
@@ -619,7 +615,7 @@ class uidsys:
         uidfp = open(self.f, "wb")
         for key, value in uidict.items():
             uidfp.write(key)
-            uidfp.write("\0\0")
+            uidfp.write(b"\0\0")
             uidfp.write(value)
         uidfp.close()
         return enduid
@@ -657,10 +653,10 @@ class iplsave:
             baseipl_ent.unk = 0
             baseipl_ent.flags = 0
             baseipl_ent.titleid = 0
-            baseipl_h.magic = "RIPL"
+            baseipl_h.magic = b"RIPL"
             baseipl_h.filesize = 0x340
             baseipl_h.unk = 0x0000000200000000
-            baseipl_h.unk2 = "\0" * 0x20
+            baseipl_h.unk2 = b"\0" * 0x20
             fp = open(f, "wb")
             fp.write(baseipl_h.magic)
             fp.write(a2b_hex("%08X" % baseipl_h.filesize))

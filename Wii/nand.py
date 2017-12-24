@@ -1,9 +1,6 @@
-from binascii import *
-from struct import *
+from .formats import *
+from .title import *
 
-from common import *
-from title import *
-from formats import *
 
 class NAND:
     """This class performs all NAND related things. It includes functions to copy a title (given the TMD) into the correct structure as the Wii does, and has an entire ES-like system. Parameter f to the initializer is the folder that will be used as the NAND root."""
@@ -53,9 +50,9 @@ class NAND:
             return 0
         newlineloc = -1
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         data = pfp.read(newlineloc)
         pfp.seek(endloc + 1)
@@ -75,9 +72,9 @@ class NAND:
             return 0
         newlineloc = 0
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         if(loc > 0):
             loc *= 2
@@ -122,9 +119,9 @@ class NAND:
             return 0
         newlineloc = 0
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         pfp.seek(newlineloc + 1)
         pdata = pfp.read(6)
@@ -140,9 +137,9 @@ class NAND:
             return 0
         newlineloc = 0
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         if(loc > 0):
             loc *= 2
@@ -191,9 +188,9 @@ class NAND:
             return 0
         newlineloc = -1
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         pfp.seek(newlineloc + 8)
         uidata = pfp.read(4)
@@ -209,9 +206,9 @@ class NAND:
             return 0
         newlineloc = -1
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         pfp.seek(newlineloc + 13)
         gidata = pfp.read(4)
@@ -227,14 +224,14 @@ class NAND:
             return 0
         newlineloc = -1
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         pfp.seek(newlineloc + 8)
         uidata = pfp.write("%04X" % val)
         pfp.close()
-        return int(uidata, 16)
+        return uidata
 
     def setFilePermissionGID(self, dir, val):
         pfp = open(self.perms, "rb")
@@ -245,14 +242,14 @@ class NAND:
             return 0
         newlineloc = -1
         for i in range(ret):
-            if(data.startswith("\n", i)):
+            if(data.startswith(b"\n")):
                 newlineloc = i + 1
-        endloc = data.find("\n", newlineloc)
+        endloc = data.find(b"\n", newlineloc)
         pfp = open(self.perms, "rb")
         pfp.seek(newlineloc + 13)
-        gidata = pfp.write("%04X" % val)
+        gidata = pfp.write(b"%04X" % val)
         pfp.close()
-        return int(gidata, 16)
+        return gidata
 
     def addPermissionEntry(self, uid, permissions, dir, groupid):
         pfp = open(self.perms, "rb")
@@ -435,8 +432,8 @@ class ISFSClass:
             leng = self.fp.write(data)
             self.loc += leng
             return leng
-        def read(self, length=""):
-            if(length == ""):
+        def read(self, length=None):
+            if(length == None):
                 self.loc = self.size
                 return self.fp.read()
             self.loc += length
@@ -726,7 +723,7 @@ class ESClass:
         if(cid != self.workingcid):
             "Working on the not current CID"
             return -40
-        self.workingfp.write(data);
+        self.workingfp.write(data)
         return 0
     def AddContentFinish(self, cid):
         """Finishes the content cid being added."""
@@ -756,6 +753,7 @@ class ESClass:
             tik = Ticket.loadFile(self.f + "/tmp/title.tik")
         else:
             tik = Ticket.loadFile(self.f + "/ticket/%08x/%08x.tik" % (self.wtitleid >> 32, self.wtitleid & 0xFFFFFFFF))
+        tmd = TMD()
         if(self.tmdadded):
             tmd = TMD.loadFile(self.f + "/tmp/title.tmd")
         contents = tmd.getContents()

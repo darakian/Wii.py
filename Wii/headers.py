@@ -1,4 +1,6 @@
-from common import *
+from .Struct import *
+from .common import *
+
 
 class IMD5(WiiHeader):
     class IMD5Header(Struct):
@@ -12,7 +14,7 @@ class IMD5(WiiHeader):
         imd5 = self.IMD5Header()
         imd5.tag = "IMD5"
         imd5.size = len(self.data)
-        imd5.zeroes = '\x00' * 8
+        imd5.zeroes = b'\x00' * 8
         imd5.crypto = str(Crypto.createMD5Hash(self.data))
         self.data = imd5.pack() + self.data
         return self.data
@@ -35,7 +37,10 @@ class IMET(WiiHeader):
             self.names = Struct.string(84, encoding = "utf-16-be", stripNulls = True)[7]
             self.zeroes2 = Struct.uint8[840]
             self.hash = Struct.string(16)
-    def add(self, iconsz, bannersz, soundsz, name = '', langs = []):
+    def add(self, iconsz, bannersz, soundsz, name = '', langs=None):
+        if langs is None:
+            langs = []
+
         imet = self.IMETHeader()
         for i in range(len(imet.zeroes)):
             imet.zeroes[i] = 0x00
@@ -52,7 +57,7 @@ class IMET(WiiHeader):
                 imet.names[i] = name
         for i in range(len(imet.zeroes2)):
             imet.zeroes2[i] = 0x00
-        imet.hash = '\x00' * 16
+        imet.hash = b'\x00' * 16
         tmp = imet.pack()
         imet.hash = Crypto.createMD5Hash(tmp[0x40:0x640])
         self.data = imet.pack() + self.data
@@ -78,7 +83,7 @@ class IMET(WiiHeader):
         name = imet.names[1]
         topop = []
         for i in range(len(name)):
-            if(name[i] == '\x00'):
+            if(name[i] == b'\x00'):
                 topop.append(i)
         name = list(name)
         popped = 0 #don't ask me why I did this

@@ -1,5 +1,3 @@
-from common import *
-
 # Copyright (c) 2008 Hector Martin <marcan@marcansoft.com>
 # All rights reserved.
 #
@@ -24,6 +22,8 @@ from common import *
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+
+from .common import *
 
 
 class LZ77(WiiHeader):

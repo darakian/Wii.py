@@ -1,11 +1,10 @@
-import os, sys, configparser, zipfile
+import configparser, zipfile
 import wx
 import Wii
 
 queue = []
-
-global logdata
 logdata = ''
+
 def log(text):
     global logdata
     #logdata.append(text + '\n')
@@ -64,9 +63,11 @@ class MyMenu(wx.App):
             myZip = zipfile.ZipFile(mym, 'r')
             debug("Loading INI...")
             myScript = configparser.ConfigParser()
-            myScript.readfp(myZip.open("mym.ini"))
+            myScript.read_file(myZip.open("mym.ini"))
         except:
             error("Invalid MyScript, skipping...")
+            return
+
         debug("Loaded successfully.")
         self.progress(10)
         sections = myScript.sections()

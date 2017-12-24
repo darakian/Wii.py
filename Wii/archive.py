@@ -1,5 +1,7 @@
-from common import *
 import zlib
+
+from .common import *
+from .Struct import *
 
 
 class U8(WiiArchive):

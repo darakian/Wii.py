@@ -1,5 +1,5 @@
-import Wii as wii
 import struct, time, shutil, os, sys
+from . import TMD, Ticket, NAND, NUS
 
 try:
     # Python 3
@@ -107,7 +107,7 @@ def getName(titleid):
         return "Other (%08x-%08x)" % (upper, lower)
 
 def summary(report, item):
-    tmd = wii.TMD.loadFile("%08x%08x/tmd" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF)) #not tmp/ because we are already in tmp
+    tmd = TMD.loadFile("%08x%08x/tmd" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF)) #not tmp/ because we are already in tmp
     report.write(getName(item.titleid) + "\n")
     report.write(" Title ID: %08x-%08x\n" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF))
     report.write(" Version: 0x%04x\n Size: %u\n" % (item.version, item.size))
@@ -120,15 +120,15 @@ def summary(report, item):
 
 
 def detailed(report, item):
-    tmd = wii.TMD.loadFile("tmp/%08x%08x/tmd" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF))
-    tik = wii.Ticket.loadFile("tmp/%08x%08x/tik" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF))
+    tmd = TMD.loadFile("tmp/%08x%08x/tmd" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF))
+    tik = Ticket.loadFile("tmp/%08x%08x/tik" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF))
 
     log("Importing %s to fake NAND (decrypted)..." % getName(item.titleid))
-    wii.NAND("nand").importTitle("tmp/%08x%08x" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF), tmd, tik, is_decrypted = False, result_decrypted = True)
+    NAND("nand").importTitle("tmp/%08x%08x" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF), tmd, tik, is_decrypted = False, result_decrypted = True)
     log("Done!\n")
 
     log("Importing %s to fake NAND (encrypted)..." % getName(item.titleid))
-    wii.NAND("encnand").importTitle("tmp/%08x%08x" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF), tmd, tik, is_decrypted = False, result_decrypted = False)
+    NAND("encnand").importTitle("tmp/%08x%08x" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF), tmd, tik, is_decrypted = False, result_decrypted = False)
     log("Done!\n")
 
     shutil.copy("tmp/%08x%08x/cert" % (item.titleid >> 32, item.titleid & 0xFFFFFFFF), "nand/sys/cert.sys")
@@ -159,7 +159,7 @@ def changed(region, added, removed, modified, previous, no_log = False):
     if(no_log):
         report = nullFile()
     else:
-        report = open("reports/%s/%s.log" % (region, time.strftime("%y%m%d-%I%M%S")), "wb")
+        report = open("reports/%s/%s.log" % (region, time.strftime("%y%m%d-%I%M%S")), "w")
     report.write("************************************************************************\n*********************** Wii System Update Report ***********************\n************************************************************************\n\n")
     report.write("Titles added:\t%u\n" % len(added))
     report.write("Titles changed:\t%u\n" % len(modified))
@@ -173,7 +173,7 @@ def changed(region, added, removed, modified, previous, no_log = False):
         report.write("\n====== Titles Added ======\n\n")
     for item in added:
         log("Downloading %s..." % getName(item.titleid))
-        wii.NUS(item.titleid, item.version).download(useidx = False, decrypt = False)
+        NUS(item.titleid, item.version).download(useidx = False, decrypt = False)
         log("Done!\n")
         summary(report, item)
 
@@ -181,7 +181,7 @@ def changed(region, added, removed, modified, previous, no_log = False):
         report.write("\n====== Titles Changed ======\n\n")
     for item in modified:
         log("Downloading %s..." % getName(item.titleid))
-        wii.NUS(item.titleid, item.version).download(useidx = False, decrypt = False)
+        NUS(item.titleid, item.version).download(useidx = False, decrypt = False)
         log("Done!\n")
         summary(report, item)
 
@@ -213,7 +213,7 @@ def changed(region, added, removed, modified, previous, no_log = False):
 
     report.write("\n***************************** MESSAGE LOG *****************************\n")
     if(no_log != True):
-        report.write(open("runlog.%s.txt" % region).read())
+        report.write(open("runlog.%s.txt" % region, 'wb').read())
 
 
 def imposter(regions):
@@ -224,7 +224,7 @@ def imposter(regions):
         data += "[check] INFO: Wiimposter: Check invoked for region %s\n" % region
         try:
             nodb = False
-            last = open("lastupdate.%s.txt" % region, "rb").read()
+            last = open("lastupdate.%s.txt" % region, "r").read()
         except:
             data += "[titlelist] WARNING: TitleList: DB file lastupdate.%s.txt does not exist. Initializing to blank list.\n" % region
             nodb = True
@@ -310,7 +310,7 @@ def imposter(regions):
         data += "[soap] INFO: Comparing update with previous...\n"
         data += "[soap] INFO: %u added, %u removed, %u changed, %u unchanged" % (len(added), len(removed), len(modified), len(same))
 
-        open("runlog.%s.txt" % region, "wb").write(data)
+        open("runlog.%s.txt" % region, "w").write(data)
 
         if(len(added) != 0 or len(modified) != 0 or len(removed) != 0):
             updatelog = ""
@@ -334,7 +334,7 @@ if(__name__ == "__main__"):
             stuff = sys.argv[1:]
         for i, arg in enumerate(stuff):
             if(arg in available):
-                imposter(args)
+                imposter(arg)
             elif(len(arg) == 16 and len(stuff) != i + 1 and stuff[i + 1].isdigit()):
                 tmp = NUSID(int(arg, 16), int(stuff[i + 1]), 0)
                 changed("", [tmp], [], [], [], no_log = True)

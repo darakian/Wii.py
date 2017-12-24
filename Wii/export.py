@@ -1,6 +1,6 @@
-from common import *
-from title import *
-from image import *
+from .image import *
+from .title import *
+
 
 class Savegame():
     class savegameHeader(Struct):
@@ -68,8 +68,8 @@ class Savegame():
         except:
             raise Exception('Cannot open input')
 
-        self.sdKey = '\xab\x01\xb9\xd8\xe1\x62\x2b\x08\xaf\xba\xd8\x4d\xbf\xc2\xa5\x5d'
-        self.sdIv = '\x21\x67\x12\xe6\xaa\x1f\x68\x9f\x95\xc5\xa2\x23\x24\xdc\x6a\x98'
+        self.sdKey = b'\xab\x01\xb9\xd8\xe1\x62\x2b\x08\xaf\xba\xd8\x4d\xbf\xc2\xa5\x5d'
+        self.sdIv = b'\x21\x67\x12\xe6\xaa\x1f\x68\x9f\x95\xc5\xa2\x23\x24\xdc\x6a\x98'
 
         self.iconCount = 1
 
@@ -131,10 +131,10 @@ class Savegame():
             fileHdr.size = align(fileHdr.size, 64)
 
             ivpos = 0
-            name = ""
+            name = b""
             i = 0
             for char in list(fileHdr.nameIV):
-                if(char == "\x00"):
+                if(char == b"\x00"):
                     i -= 1
                     ivpos = i
                     break
@@ -196,7 +196,7 @@ class Savegame():
 
     def eraseWiiMac(self):
         self.fd.seek(0xF128)
-        print(self.fd.write('\x00' * 6))
+        print(self.fd.write(b'\x00' * 6))
 
     def getBanner(self):
         try:
@@ -260,8 +260,8 @@ class locDat:
             self.md5 = Struct.string(16)
 
     def __init__(self, f):
-        self.sdKey = '\xab\x01\xb9\xd8\xe1\x62\x2b\x08\xaf\xba\xd8\x4d\xbf\xc2\xa5\x5d'
-        self.sdIv = '\x21\x67\x12\xe6\xaa\x1f\x68\x9f\x95\xc5\xa2\x23\x24\xdc\x6a\x98'
+        self.sdKey = b'\xab\x01\xb9\xd8\xe1\x62\x2b\x08\xaf\xba\xd8\x4d\xbf\xc2\xa5\x5d'
+        self.sdIv = b'\x21\x67\x12\xe6\xaa\x1f\x68\x9f\x95\xc5\xa2\x23\x24\xdc\x6a\x98'
 
         self.titles = []
         self.usedBlocks = 0
@@ -278,7 +278,7 @@ class locDat:
 
         for x in range(240):
             self.titles.append(plainBuffer[0x14 + x * 4:0x14 + (x + 1) * 4])
-            if self.titles[x] == '\x00\x00\x00\x00':
+            if self.titles[x] == b'\x00\x00\x00\x00':
                 self.freeBlocks += 1
 
         self.usedBlocks = 240 - self.freeBlocks
@@ -287,7 +287,7 @@ class locDat:
         out = ''
         out += 'Used %i blocks out of 240\n\n' % self.usedBlocks
         for x in range(240):
-            if self.titles[x] == '\x00\x00\x00\x00':
+            if self.titles[x] == b'\x00\x00\x00\x00':
                 out += 'Block %i on page %i is empty\n' % (x, x / 12)
             else:
                 out += 'Block %i on page %i hold title %s\n' % (x, x / 12, self.titles[x])
@@ -301,7 +301,7 @@ class locDat:
         return self.usedBlocks
 
     def isBlockFree(self, x, y, page):
-        if self.titles[((x + (y * 4) + (page * 12)))] == '\x00\x00\x00\x00':
+        if self.titles[((x + (y * 4) + (page * 12)))] == b'\x00\x00\x00\x00':
             return 1
 
         return 0
@@ -330,7 +330,7 @@ class locDat:
 
         self.titles[((x + (y * 4) + (page * 12)))] = element.upper()
 
-        titles = ''
+        titles = b''
 
         titles += self.hdr.magic
         titles += self.hdr.md5
@@ -338,7 +338,7 @@ class locDat:
         for x in range(240):
             titles += self.titles[x]
 
-        titles += '\x00' * 12
+        titles += b'\x00' * 12
 
         titles = titles[:0x4] + Crypto().createMD5Hash(titles) + titles[0x14:]
 
@@ -346,5 +346,5 @@ class locDat:
         self.fp.write(Crypto().encryptData(self.sdKey, self.sdIv, titles))
 
     def delTitle(self, x, y, page):
-        self.setTitle(x, y, page, '\x00\x00\x00\x00')
+        self.setTitle(x, y, page, b'\x00\x00\x00\x00')
 

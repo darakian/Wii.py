@@ -1,4 +1,14 @@
-import os, hashlib, struct, subprocess, fnmatch, shutil, array, time, sys, tempfile, wave
+import array
+import fnmatch
+import hashlib
+import os
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+import wave
 
 try:
     # Python 3
@@ -7,13 +17,8 @@ except ImportError:
     # Fall back to Python 2
     from urllib2 import urlopen
 
-from binascii import *
-from io import BytesIO
-
 from Crypto.Cipher import AES
-from PIL import Image
 
-from Struct import Struct
 
 def align(x, boundary):
     while x % boundary != 0:

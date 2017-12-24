@@ -5,7 +5,11 @@
 # Wii.py (c) Xuzz, SquidMan, megazig, TheLemonMan, |Omega|, and Matt_P.
 #----------------------------------------------------------------------
 
-import Wii, sys, os, shutil
+import shutil
+import sys
+
+import Wii
+
 
 def downloadPack(titleid, version, outDir, pack):
     print("downloadPack(0x%016x, %d, %s, %d)" % (titleid,version,outDir,pack))

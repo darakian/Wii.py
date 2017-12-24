@@ -1,5 +1,6 @@
-from common import *
-from title import *
+from .Struct import *
+from .title import *
+
 
 class WOD: #WiiOpticalDisc
     class discHeader(Struct):

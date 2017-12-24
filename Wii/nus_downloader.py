@@ -5,8 +5,16 @@
 # Wii.py (c) Xuzz, SquidMan, megazig, TheLemonMan, Omega|, and Matt_P.
 #----------------------------------------------------------------------
 
-import os, wx, shutil, sys, threading
+import os
+import shutil
+import struct
+import sys
+import threading
+
+import wx
+
 import Wii
+
 
 def readableTitleID(lower):
   out = struct.unpack("4s", struct.pack(">I", lower))
@@ -204,7 +212,7 @@ class Downloader(wx.App):
         elif(not os.path.isdir(os.path.dirname(out))):
             out = os.path.expanduser("~/" + getName(int(titleid, 16)))
             if(ver != ""):
-                out += + "v" + str(ver)
+                out += "v" + str(ver)
         queue[self.selected] = (titleid, ver, out, fmt)
         self.setList()
         self.list.Select(self.selected)
@@ -276,7 +284,7 @@ class Downloader(wx.App):
         dlg.Destroy()
         fd = open(script, "wb")
         for i, elem in enumerate(queue):
-            fd.write("%08x%08x %04x\n" % (int(elem[0][:8], 16), int(elem[0][8:], 16), int(elem[1])))
+            fd.write(b"%08x%08x %04x\n" % (int(elem[0][:8], 16), int(elem[0][8:], 16), int(elem[1])))
         self.output.AppendText("Script written to %s.\n" % script)
     def go(self, evt):
         self.progress.SetValue(0)
@@ -387,7 +395,6 @@ def excepthook(type, value, traceb):
     dummyf = dummy()
     traceback.print_exception(type, value, traceb, file=dummyf)
     wx.MessageBox('NUS WAD Packer has encountered a fatal error. Please inform the author of the following traceback:\n\n%s' % tb, 'Fatal Error', wx.OK | wx.ICON_ERROR)
-    clean()
     sys.exit(1)
 
 if(__name__ == '__main__'):
